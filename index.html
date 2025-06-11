@@ -1,0 +1,517 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>DSA Instructor Chatbot</title> 
+    <link rel="stylesheet" 
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
+    <style> 
+        
+        :root {
+    --primary-color: #4a6bff;
+    --secondary-color: #6c5ce7;
+    --dark-color: #2d3436;
+    --light-color: #f5f6fa;
+    --success-color: #00b894;
+    --warning-color: #fdcb6e;
+    --danger-color: #d63031;
+    --user-bubble: #dfe9ff;
+    --bot-bubble: rgba(255, 255, 255, 0.7);
+    --glass-bg: rgba(255, 255, 255, 0.3);
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    --blur: blur(12px);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+}
+
+.chatbot-container {
+    width: 100%;
+    max-width: 900px;
+    height: 90vh;
+    border-radius: 20px;
+    backdrop-filter: var(--blur);
+    background: var(--glass-bg);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.chatbot-header {
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.chatbot-header h1 {
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chatbot-header i {
+    font-size: 1.8rem;
+    color: var(--warning-color);
+}
+
+.chatbot-status {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    gap: 6px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background-color: var(--success-color);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--success-color);
+}
+
+.chatbot-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 25px;
+    background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.message {
+    max-width: 75%;
+    padding: 14px 18px;
+    border-radius: 18px;
+    line-height: 1.6;
+    font-size: 0.96rem;
+    position: relative;
+    animation: fadeIn 0.4s ease-out;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.user-message {
+    background-color: var(--primary-color);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 5px;
+}
+
+.bot-message {
+    background-color: var(--bot-bubble);
+    color: var(--dark-color);
+    align-self: flex-start;
+    border-bottom-left-radius: 5px;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.bot-message code,
+.bot-message pre {
+    font-family: monospace;
+    background: #f1f1f1;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: block;
+    white-space: pre-wrap;
+    margin-top: 10px;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    text-align: right;
+    opacity: 0.6;
+    margin-top: 4px;
+}
+
+.chatbot-input {
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: var(--blur);
+    display: flex;
+    gap: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.chatbot-input textarea {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 25px;
+    resize: none;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.chatbot-input textarea:focus {
+    border-color: var(--primary-color);
+}
+
+.send-button {
+    background-color: var(--primary-color);
+    border: none;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.send-button:hover {
+    background-color: var(--secondary-color);
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 6px;
+    padding: 10px 15px;
+    background: var(--bot-bubble);
+    border-radius: 18px;
+    align-self: flex-start;
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--dark-color);
+    border-radius: 50%;
+    opacity: 0.4;
+    animation: typingAnimation 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingAnimation {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+    30% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+}
+
+.welcome-message {
+    text-align: center;
+    padding: 30px;
+    margin: auto;
+}
+
+.welcome-message h2 {
+    color: var(--primary-color);
+    margin-bottom: 12px;
+}
+
+.welcome-message p {
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.example-questions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.example-question {
+    background: var(--user-bubble);
+    color: var(--primary-color);
+    padding: 10px 18px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 1px solid rgba(74, 107, 255, 0.3);
+}
+
+.example-question:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.loading-screen {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    z-index: 100;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 6px solid rgba(74, 107, 255, 0.3);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    font-weight: bold;
+    color: var(--dark-color);
+    opacity: 0.8;
+}
+
+.hidden {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .chatbot-container {
+        border-radius: 0;
+        height: 100vh;
+    }
+
+    .message {
+        max-width: 90%;
+    }
+
+    .chatbot-input {
+        padding: 10px;
+    }
+}
+
+    </style> 
+</head> 
+<body> 
+    <div class="chatbot-container"> 
+        <div class="chatbot-header"> 
+            <h1><i class="fas fa-robot"></i> DSA Instructor</h1> 
+            <div class="chatbot-status"> 
+                <div class="status-dot"></div> 
+                <span>Online</span> 
+            </div> 
+        </div> 
+ 
+        <div class="chatbot-messages" id="chat-messages"> 
+            <div class="welcome-message"> 
+                <h2>Welcome to DSA Instructor!</h2> 
+                <p>I'm here to help you with Data Structures and Algorithms. Ask me anything about:</p> 
+                <div class="example-questions"> 
+                    <div class="example-question" onclick="insertExample('What is a binary search tree?')">Binary Search Trees</div> 
+                    <div class="example-question" onclick="insertExample('Explain Dijkstra\'s algorithm')">Dijkstra's Algorithm</div> 
+                    <div class="example-question" onclick="insertExample('How does quicksort work?')">Quicksort</div> 
+                    <div class="example-question" onclick="insertExample('Time complexity of merge sort')">Time Complexity</div> 
+                </div> 
+            </div> 
+        </div> 
+ 
+        <div class="chatbot-input"> 
+            <textarea id="user-input" placeholder="Ask me anything about Data Structures and Algorithms..." rows="1"></textarea> 
+            <button class="send-button" id="send-button"> 
+                <i class="fas fa-paper-plane"></i> 
+            </button> 
+        </div> 
+ 
+        <div class="loading-screen hidden" id="loading-screen"> 
+            <div class="spinner"></div> 
+            <div class="loading-text">DSA Instructor is thinking...</div> 
+        </div> 
+    </div> 
+ 
+    <script> 
+        // DOM elements 
+        const chatMessages = document.getElementById('chat-messages'); 
+        const userInput = document.getElementById('user-input'); 
+        const sendButton = document.getElementById('send-button'); 
+        const loadingScreen = document.getElementById('loading-screen'); 
+ 
+        // >>> IMPORTANT: PASTE YOUR API KEY HERE <<< 
+        const GEMINI_API_KEY = 'AIzaSyAxDIu9M1hlHKQ1AuedI3IFrRTuSYOZxho'; 
+        // Replace YOUR_API_KEY_HERE with your actual API key 
+ 
+        // Auto-resize textarea 
+        userInput.addEventListener('input', function() { 
+            this.style.height = 'auto'; 
+            this.style.height = (this.scrollHeight) + 'px'; 
+        }); 
+ 
+        // Send message on Enter (but allow Shift+Enter for new lines) 
+        userInput.addEventListener('keydown', function(e) { 
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                sendMessage(); 
+            } 
+        }); 
+ 
+        // Send message on button click 
+        sendButton.addEventListener('click', sendMessage); 
+ 
+        // Example question insertion 
+        function insertExample(question) { 
+            userInput.value = question; 
+            userInput.focus(); 
+            userInput.style.height = 'auto'; 
+            userInput.style.height = (userInput.scrollHeight) + 'px'; 
+        } 
+ 
+        // Format code blocks in bot responses 
+        function formatCodeBlocks(text) { 
+            // Replace markdown code blocks with HTML 
+            return text.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, function(match, lang, code) { 
+                return `<pre><code class="language-${lang}">${code.trim()}</code></pre>`; 
+            }); 
+        } 
+ 
+        // Add a message to the chat 
+        function addMessage(role, content) { 
+            const messageDiv = document.createElement('div'); 
+            messageDiv.classList.add('message', `${role}-message`); 
+            
+            const formattedContent = formatCodeBlocks(content); 
+            messageDiv.innerHTML = ` 
+                ${formattedContent} 
+                <div class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div> 
+            `; 
+            
+            chatMessages.appendChild(messageDiv); 
+            chatMessages.scrollTop = chatMessages.scrollHeight; 
+        } 
+ 
+        // Show typing indicator 
+        function showTyping() { 
+            const typingDiv = document.createElement('div'); 
+            typingDiv.classList.add('typing-indicator'); 
+            typingDiv.id = 'typing-indicator'; 
+            typingDiv.innerHTML = ` 
+                <div class="typing-dot"></div> 
+                <div class="typing-dot"></div> 
+                <div class="typing-dot"></div> 
+            `; 
+            chatMessages.appendChild(typingDiv); 
+            chatMessages.scrollTop = chatMessages.scrollHeight; 
+        } 
+ 
+        // Hide typing indicator 
+        function hideTyping() { 
+            const typingIndicator = document.getElementById('typing-indicator'); 
+            if (typingIndicator) { 
+                typingIndicator.remove(); 
+            } 
+        } 
+ 
+        // Send message to the chatbot 
+        async function sendMessage() { 
+            const message = userInput.value.trim(); 
+            if (!message) return; 
+ 
+            // Add user message to chat 
+            addMessage('user', message); 
+            userInput.value = ''; 
+            userInput.style.height = 'auto'; 
+ 
+            // Show loading/typing indicator 
+            showTyping(); 
+            loadingScreen.classList.remove('hidden'); 
+ 
+            try { 
+                // Prepare the request data for Gemini API 
+                const requestData = { 
+                    contents: [ 
+                        { 
+                            parts: [ 
+                                { 
+                                    text: message 
+                                } 
+                            ] 
+                        } 
+                    ], 
+                    systemInstruction: { 
+                        parts: [ 
+                            { 
+                                text: `You are Data Structure and Algorithm expert. you will only reply to the problem related to the data structure and algorithm. you have to solve query of the users in a simplest way. If user ask any question which is not related to data structure and algorithm reply him rudely 
+                                example: if user ask , how are you 
+                                you will reply: you dumb ask me some sensible question, like this message you can reply anything rudely. 
+                                you have to reply him rudely if question is not related to data structure and algorithm. 
+                                else reply him politely with simple explanation.` 
+                            } 
+                        ] 
+                    } 
+                }; 
+ 
+                // Make the API call using fetch 
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, { 
+                    method: 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    }, 
+                    body: JSON.stringify(requestData) 
+                }); 
+ 
+                if (!response.ok) { 
+                    throw new Error(`API request failed with status ${response.status}`); 
+                } 
+ 
+                const data = await response.json(); 
+                
+                // Extract the response text 
+                let botResponse = ''; 
+                if (data.candidates && data.candidates[0].content.parts) { 
+                    botResponse = data.candidates[0].content.parts[0].text; 
+                } else { 
+                    botResponse = "Sorry, I couldn't process your request. Please try again."; 
+                } 
+ 
+                // Hide loading/typing indicator and add bot response 
+                hideTyping(); 
+                loadingScreen.classList.add('hidden'); 
+                addMessage('bot', botResponse); 
+ 
+            } catch (error) { 
+                console.error('Error:', error); 
+                hideTyping(); 
+                loadingScreen.classList.add('hidden'); 
+                addMessage('bot', "Sorry, I encountered an error. Please try  again later.");
+            } 
+        } 
+    </script> 
+</body> 
+</html>
